@@ -5,5 +5,5 @@ compatibility_flags = ["nodejs_compat"]
 
 [[kv_namespaces]]
 binding = "EMBEDDINGS_KV"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id" 
+id = "a28d90b3a35041b8ad0b0c809583726e"
+preview_id = "cdba9c5a216949f180a06c36489da2fa" 
