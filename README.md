@@ -201,4 +201,8 @@ EmbedAPI includes a comprehensive test suite built with Vitest and `@cloudflare/
 
 ## License
 
-MIT License 
+[MIT License](LICENSE)
+
+## Author
+
+- [@prudhvi1709](https://github.com/prudhvi1709)
