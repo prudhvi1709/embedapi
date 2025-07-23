@@ -1,0 +1,20 @@
+{
+  "name": "embedapi",
+  "version": "1.0.0",
+  "description": "Serverless API for text embeddings using Cloudflare Workers and OpenAI",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "keywords": ["cloudflare", "workers", "openai", "embeddings", "serverless", "api"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0",
+    "@cloudflare/vitest-pool-workers": "^0.5.4",
+    "vitest": "~2.1.0"
+  }
+} 
