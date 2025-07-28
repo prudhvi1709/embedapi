@@ -1,92 +1,187 @@
-# EmbedAPI
+# EmbedAPI with Vectorize
 
-A minimal serverless API built with Cloudflare Workers that generates and stores text embeddings using OpenAI's `text-embedding-3-small` model.
+A high-performance serverless API built with Cloudflare Workers that generates, stores, and searches text embeddings using OpenAI's `text-embedding-3-small` model and Cloudflare Vectorize for hybrid search capabilities.
 
 ## Live Demo
 
 **API URL:** https://embedapi.kprudhvi71.workers.dev
 
-## Features
+## ✨ Features
 
-- **POST /embed** - Generate embeddings for text and store them
-- **GET /embed/:id** - Retrieve stored text and embeddings by ID
-- Built on Cloudflare Workers for global edge deployment
-- Uses Cloudflare KV for persistent storage
-- Integrates with OpenAI's embedding API
-- Comprehensive test suite with Vitest + Cloudflare Workers runtime
+- **Vector Embeddings**: Generate embeddings using OpenAI's latest models
+- **Hybrid Search**: Combine semantic similarity with metadata filtering
+- **Global Performance**: Deployed on Cloudflare's edge network
+- **Vectorize Storage**: Native vector database for optimal performance
+- **Metadata Support**: Rich metadata filtering and storage
+- **RESTful API**: Clean, intuitive endpoints
+- **Comprehensive Testing**: Full test suite with Vitest
+
+## 🚀 New in v2.0: Vectorize Integration
+
+- **Hybrid Search**: `/search` endpoint with similarity + metadata filtering
+- **Better Performance**: Native vector operations vs. key-value storage  
+- **Scalability**: Optimized for large-scale vector workloads
+- **Cost Efficiency**: More economical than storing large arrays in KV
+- **Advanced Filtering**: Complex metadata queries and constraints
 
 ## API Endpoints
 
 ### POST /embed
 
-Generates embeddings for the provided text and stores them in KV storage.
+Generates embeddings for text and stores them in Vectorize with optional metadata.
 
 **Request:**
 ```bash
 curl -X POST https://embedapi.kprudhvi71.workers.dev/embed \
   -H "Authorization: Bearer your-openai-api-key" \
   -H "Content-Type: application/json" \
-  -d '{"text": "Hello, world!"}'
-```
-
-**Request Headers:**
-- `Authorization: Bearer <your-openai-api-key>` - Your OpenAI API key
-- `Content-Type: application/json`
-
-**Request Body:**
-```json
-{
-  "text": "Your text to embed"
-}
+  -d '{
+    "text": "Machine learning is transforming software development",
+    "metadata": {
+      "category": "technology", 
+      "source": "blog",
+      "author": "jane_doe",
+      "timestamp": "2024-01-15"
+    }
+  }'
 ```
 
 **Response:**
 ```json
 {
-  "id": "a1b2c3d4"
+  "id": "a1b2c3d4e5f6789",
+  "message": "Embedding created successfully",
+  "metadata": {
+    "text": "Machine learning is transforming software development",
+    "category": "technology",
+    "source": "blog", 
+    "author": "jane_doe",
+    "timestamp": "2024-01-15"
+  }
 }
 ```
 
 ### GET /embed/:id
 
-Retrieves the original text and embedding for a given ID.
+Retrieves stored text, embedding, and metadata by ID.
 
 **Request:**
 ```bash
-curl https://embedapi.kprudhvi71.workers.dev/embed/a1b2c3d4
+curl https://embedapi.kprudhvi71.workers.dev/embed/a1b2c3d4e5f6789
 ```
 
 **Response:**
 ```json
 {
-  "id": "a1b2c3d4",
-  "text": "Hello, world!",
+  "id": "a1b2c3d4e5f6789",
+  "text": "Machine learning is transforming software development",
   "embedding": [0.1, 0.2, 0.3, ...],
-  "timestamp": "2024-01-01T12:00:00.000Z"
+  "metadata": {
+    "category": "technology",
+    "source": "blog",
+    "author": "jane_doe",
+    "timestamp": "2024-01-15"
+  }
+}
+```
+
+### POST /search - 🆕 Hybrid Search
+
+Performs semantic similarity search with optional metadata filtering.
+
+**Request:**
+```bash
+curl -X POST https://embedapi.kprudhvi71.workers.dev/search \
+  -H "Authorization: Bearer your-openai-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "AI and software engineering",
+    "topK": 5,
+    "filter": {
+      "category": "technology",
+      "author": "jane_doe"
+    },
+    "includeValues": false,
+    "returnSimilarityScores": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "query": "AI and software engineering", 
+  "results": [
+    {
+      "id": "a1b2c3d4e5f6789",
+      "score": 0.94,
+      "text": "Machine learning is transforming software development",
+      "metadata": {
+        "category": "technology",
+        "source": "blog",
+        "author": "jane_doe"
+      }
+    }
+  ],
+  "total": 1
+}
+```
+
+**Search Parameters:**
+- `query` (required): Text to search for
+- `topK` (optional, default: 5): Number of results to return
+- `filter` (optional): Metadata filtering conditions
+- `includeValues` (optional, default: false): Include embedding vectors
+- `includeMetadata` (optional, default: true): Include metadata
+- `returnSimilarityScores` (optional, default: true): Include similarity scores
+
+### DELETE /embed/:id - 🆕 Delete Embeddings
+
+Removes an embedding from Vectorize.
+
+**Request:**
+```bash
+curl -X DELETE https://embedapi.kprudhvi71.workers.dev/embed/a1b2c3d4e5f6789
+```
+
+**Response:**
+```json
+{
+  "message": "Embedding deleted successfully",
+  "id": "a1b2c3d4e5f6789"
 }
 ```
 
 ## Quick Start
 
-Try the API right now with your OpenAI API key:
+Try the hybrid search API:
 
 ```bash
-# Test the API (replace YOUR_OPENAI_API_KEY with your actual key)
+# 1. Create an embedding with metadata
 curl -X POST https://embedapi.kprudhvi71.workers.dev/embed \
   -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"text": "Hello from EmbedAPI!"}'
+  -d '{
+    "text": "Cloudflare Workers enable edge computing",
+    "metadata": {"category": "infrastructure", "topic": "serverless"}
+  }'
 
-# Use the returned ID to retrieve the embedding
-curl https://embedapi.kprudhvi71.workers.dev/embed/RETURNED_ID
+# 2. Search for similar content
+curl -X POST https://embedapi.kprudhvi71.workers.dev/search \
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "edge computing platforms",
+    "filter": {"category": "infrastructure"},
+    "topK": 3
+  }'
 ```
 
 ## Setup & Development
 
 ### Prerequisites
 
-- Node.js installed
-- Cloudflare account
+- Node.js 18+
+- Cloudflare account with Workers and Vectorize access
 - OpenAI API key
 
 ### Installation
@@ -107,34 +202,26 @@ npm install
 npx wrangler login
 ```
 
-4. Create KV namespaces:
+4. Create the Vectorize index:
 ```bash
-npx wrangler kv namespace create "EMBEDDINGS_KV"
-npx wrangler kv namespace create "EMBEDDINGS_KV" --preview
+npx wrangler vectorize create embeddings-index --dimensions=1536 --metric=cosine
 ```
 
-5. Update `wrangler.toml` with your KV namespace IDs (the commands above will show you the IDs to use)
+5. Create KV namespace (for backward compatibility):
+```bash
+npx wrangler kv namespace create "EMBEDDINGS_KV"
+```
+
+6. Update `wrangler.toml` with your namespace IDs (commands above show the IDs to use).
 
 ### Development
 
-Run the worker locally:
+Run locally:
 ```bash
 npm run dev
 ```
 
-### Testing
-
-Run the comprehensive test suite:
-```bash
-npm test
-```
-
-The tests cover:
-- Unit tests for all API functions
-- Integration tests for full workflows
-- Error handling and edge cases
-- OpenAI API integration mocking
-- CORS and response format validation
+**Note**: Local development uses mocked Vectorize operations. For full testing, deploy to Cloudflare.
 
 ### Deployment
 
@@ -143,61 +230,161 @@ Deploy to Cloudflare Workers:
 npm run deploy
 ```
 
-## Environment Variables
+## Use Cases
 
-No environment variables are required. The OpenAI API key is provided per-request via the Authorization header.
-
-## Data Storage
-
-Data is stored in Cloudflare KV with the following structure:
-
-```json
-{
-  "text": "Original input text",
-  "embedding": [0.1, 0.2, 0.3, ...],
-  "timestamp": "2024-01-01T12:00:00.000Z"
-}
+### 1. **Semantic Search**
+Find content by meaning, not just keywords:
+```bash
+# Search for conceptually similar content
+curl -X POST .../search -d '{"query": "machine learning applications"}'
 ```
 
-## Error Handling
+### 2. **Content Recommendation**
+Filter by metadata and find similar items:
+```bash
+curl -X POST .../search -d '{
+  "query": "user preferences", 
+  "filter": {"content_type": "article", "language": "en"}
+}'
+```
 
-The API returns appropriate HTTP status codes and error messages:
+### 3. **RAG (Retrieval Augmented Generation)**
+Power AI chatbots with contextual knowledge:
+```bash
+# Find relevant context for AI responses
+curl -X POST .../search -d '{
+  "query": "customer support question",
+  "filter": {"domain": "technical_docs"},
+  "topK": 3
+}'
+```
 
-- `400` - Bad Request (missing or invalid parameters)
-- `401` - Unauthorized (missing or invalid API key)
-- `404` - Not Found (embedding ID not found)
-- `500` - Internal Server Error
+### 4. **Duplicate Detection**
+Find similar or duplicate content:
+```bash
+curl -X POST .../search -d '{
+  "query": "potential duplicate content",
+  "returnSimilarityScores": true
+}'
+```
 
-## Rate Limits
+## Architecture
 
-Rate limits are governed by:
-- Cloudflare Workers limits (100,000 requests/day on free tier)
-- OpenAI API rate limits (varies by plan)
-- Cloudflare KV limits (1,000 writes/day on free tier)
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Cloudflare    │    │     OpenAI       │    │   Vectorize     │
+│    Workers      │───▶│   Embeddings     │    │   Database      │
+│                 │    │      API         │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                                               │
+         └───────────────────────────────────────────────┘
+                    Hybrid Search + Storage
+```
 
-## Security Considerations
+## Performance & Limits
 
-- OpenAI API keys are passed via request headers and not stored
-- CORS is enabled for cross-origin requests
-- No authentication is implemented beyond OpenAI API key validation
+### Vectorize Benefits over KV
+- **Native vector operations**: Cosine similarity, dot product, euclidean distance
+- **Metadata filtering**: Complex queries with multiple conditions  
+- **Better performance**: Optimized for high-dimensional vector operations
+- **Cost efficiency**: No large JSON serialization/deserialization
+- **Scalability**: Built for millions of vectors
 
-## Testing
+### Current Limits
+- **Vectorize**: 200,000 vectors (free tier), 10M+ (paid)
+- **Workers**: 100,000 requests/day (free tier)
+- **OpenAI**: Rate limits vary by plan
+- **Vector dimensions**: 1536 (text-embedding-3-small)
 
-EmbedAPI includes a comprehensive test suite built with Vitest and `@cloudflare/vitest-pool-workers` that runs tests directly in the Cloudflare Workers runtime environment. The tests cover:
+## Migration from v1.0 (KV-based)
 
-- **Unit Tests**: Individual function testing with mocked dependencies
-- **Integration Tests**: Full API workflow testing with real request/response cycles
-- **Error Handling**: Comprehensive error scenarios and edge cases
-- **OpenAI Integration**: Mocked OpenAI API responses for reliable testing
-- **Data Integrity**: Validation of embedding storage and retrieval
+If you're upgrading from the KV-based version:
+
+1. **Gradual migration**: Both KV and Vectorize bindings are configured
+2. **Backup data**: Export existing embeddings before migration
+3. **Update clients**: Use new `/search` endpoint for hybrid search
+4. **Remove KV**: After migration, remove KV binding from `wrangler.toml`
+
+## Security
+
+- **API Keys**: OpenAI keys passed per-request, never stored
+- **CORS**: Enabled for cross-origin requests  
+- **Input validation**: Comprehensive request validation
+- **Rate limiting**: Inherit from Cloudflare Workers and OpenAI
+
+## Examples
+
+### Content Management System
+```javascript
+// Store document with rich metadata
+await fetch('/embed', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer sk-...', 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    text: document.content,
+    metadata: {
+      title: document.title,
+      author: document.author,
+      category: document.category,
+      published_date: document.date,
+      tags: document.tags
+    }
+  })
+});
+
+// Search with filters
+const results = await fetch('/search', {
+  method: 'POST', 
+  headers: { 'Authorization': 'Bearer sk-...', 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: userQuery,
+    filter: {
+      category: selectedCategory,
+      published_date: { $gte: '2024-01-01' }
+    },
+    topK: 10
+  })
+});
+```
+
+### E-commerce Search
+```javascript
+// Product search with metadata filtering
+const productSearch = await fetch('/search', {
+  method: 'POST',
+  body: JSON.stringify({
+    query: 'comfortable running shoes',
+    filter: {
+      category: 'footwear',
+      price_range: 'mid-tier',
+      brand: ['nike', 'adidas', 'asics']
+    },
+    topK: 20
+  })
+});
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `npm test`
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/vectorize-enhancement`
+3. Make changes and test: `npm test`
+4. Submit a pull request
+
+## Changelog
+
+### v2.0.0 - Vectorize Integration
+- **Added**: Cloudflare Vectorize for vector storage
+- **Added**: `/search` endpoint for hybrid search
+- **Added**: `/delete` endpoint for cleanup operations
+- **Added**: Rich metadata support and filtering
+- **Improved**: Performance and scalability
+- **Improved**: Error handling and validation
+
+### v1.0.0 - Initial Release
+- Basic embedding generation and storage using KV
+- OpenAI integration
+- Simple CRUD operations
 
 ## License
 
@@ -205,4 +392,4 @@ EmbedAPI includes a comprehensive test suite built with Vitest and `@cloudflare/
 
 ## Author
 
-- [@prudhvi1709](https://github.com/prudhvi1709)
+[@prudhvi1709](https://github.com/prudhvi1709)
