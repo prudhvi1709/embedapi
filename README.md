@@ -24,6 +24,31 @@ A high-performance serverless API built with Cloudflare Workers that generates, 
 - **Cost Efficiency**: More economical than storing large arrays in KV
 - **Advanced Filtering**: Complex metadata queries and constraints
 
+## Quick Start
+
+Try the hybrid search API:
+
+```bash
+# 1. Create an embedding with metadata
+curl -X POST https://embedapi.kprudhvi71.workers.dev/embed \
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Cloudflare Workers enable edge computing",
+    "metadata": {"category": "infrastructure", "topic": "serverless"}
+  }'
+
+# 2. Search for similar content
+curl -X POST https://embedapi.kprudhvi71.workers.dev/search \
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "edge computing platforms",
+    "filter": {"category": "infrastructure"},
+    "topK": 3
+  }'
+```
+
 ## API Endpoints
 
 ### POST /embed
@@ -149,31 +174,6 @@ curl -X DELETE https://embedapi.kprudhvi71.workers.dev/embed/a1b2c3d4e5f6789
   "message": "Embedding deleted successfully",
   "id": "a1b2c3d4e5f6789"
 }
-```
-
-## Quick Start
-
-Try the hybrid search API:
-
-```bash
-# 1. Create an embedding with metadata
-curl -X POST https://embedapi.kprudhvi71.workers.dev/embed \
-  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Cloudflare Workers enable edge computing",
-    "metadata": {"category": "infrastructure", "topic": "serverless"}
-  }'
-
-# 2. Search for similar content
-curl -X POST https://embedapi.kprudhvi71.workers.dev/search \
-  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "edge computing platforms",
-    "filter": {"category": "infrastructure"},
-    "topK": 3
-  }'
 ```
 
 ## Setup & Development
